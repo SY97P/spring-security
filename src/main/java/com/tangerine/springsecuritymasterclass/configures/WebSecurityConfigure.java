@@ -39,7 +39,11 @@ public class WebSecurityConfigure {
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .deleteCookies("remember-me"));
+                        .deleteCookies("remember-me"))
+                .requiresChannel(channel -> channel
+                        .anyRequest()
+//                        .requestMatchers("/api/**")
+                        .requiresSecure());
         return http.build();
     }
 
