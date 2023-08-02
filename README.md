@@ -133,3 +133,64 @@ http.rememberMe(remember -> remember
 - 서버 개인키로 암호화 + 클라가 서버 공개키로 복호화 시 필요
 - 주고받는 http 메시지 보호를 위해서 RSA 필요
 - '큰 수의 인수분해는 어렵다'
+
+<hr>
+
+# #3. 3일차 미션
+
+## Remember-Me 인증 정리
+
+### RememberMeAuthenticationFilter
+- Remember-Me 인증 위한 Security Filter
+- 위치
+  - UsernamePasswordAuthenticationFilter 아래
+  - AnonymousAuthenticationFilter 위
+- 인증되지 않은 사용자의 HTTP 요청이 remember-me 쿠키를 갖고 있다면, 사용자를 자동으로 인증처리
+  - key
+    - remember-me 쿠키 고유 식별값
+    - 미입력 시 자동으로 랜덤 텍스트 입력됨.
+  - rememberMeParameter
+    - remember-me 쿠키 파라미터명 
+    - 기본값: "remember-me"
+  - tokenValiditySeconds
+    - 쿠키 만료 시간 (unit: sec)
+  - alwaysRemeber
+    - 항상 remember-me 활성화
+    - 기본값: false
+```java
+http.rememberMe()
+        .key("my-remember-me") // 쿠키 식별값
+        .rememberMeParameter("remember-me") // 쿠키 이름
+        .tokenValiditySeconds(300) // 쿠키 5분동안 유지
+        .alwaysRemember(false) // 선택 가능
+```
+
+### RememberMeServices 인터페이스 구현체
+- 실제 사용자 인증
+#### TokenBasedRemeberMeServices
+- MD5 해시 알고리즘 기반 쿠키 검증
+#### PersistTokenBasedRememberMeSerivics
+- 외부 데이터베이스에서 인증에 필요한 데이터 가져와 검증
+- 사용자마다 고유 Series 식별자 생성
+- 인증마다 매번 갱신되는 임의 토큰값 사용
+- 높은 보안성
+
+### RememberMeAuthenticationToken
+- remember-me 기반 Authentication 인터페이스 구현체
+- RememberMeAuthenticationToken 객체는 <u>언제나 인증이 완료된 상태만 존재</u>
+
+### RememberMeAuthenticationProvider 
+- Remember-Me 기반 AuthenticationProvider 인터페이스 구현체
+- RememberMeAuthenticationFilter에서 설정한 key값 검증
+- 명시적 로그인 아이디/비밀번호 기반 인증 사용과 권한 구분
+  - remember-me 기반 인증과 로그인 아이디/비밀번호 기반 인증 결과 다름
+  - remeber-me 기반 인증 결과
+    - RememberMeAuthenticationToken
+  - 로그인 아이디/비밀번호 기반 인증 결과 
+    - UsernamePasswordAuthenticationToken
+- 보안성 : remember-me 기반 인증 < 로그인 기반 인증
+  - 동일하게 인증된 사용자더라도 인증에 따라서 권한 분리
+  - fullyAuthenticated
+    - 명시적 로그인 아이디/비밀번호 기반 인증 사용자만 접근 가능
+![](img.png)
+
