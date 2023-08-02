@@ -79,7 +79,7 @@ http.rememberMe(remember -> remember
 ### Security Filter 정리
 
 #### `AnonymousAuthenticationFilter`
-- 해당 인증 필터에 도달할 때까지 사용자가 인증 미완이면, 익명 사용자로 처리
+- 해당 인증 필터에 도달할 때까지 사용자가 인증 미완(사용자 = null)이면, 익명 사용자로 처리
 - `SecurityContextHolder` 에 인증 개체가 없는지 감지하고 필요한 경우 하나로 채웁니다.
 
 #### `ExceptionTranslationFilter`
@@ -98,6 +98,11 @@ http.rememberMe(remember -> remember
 - SSL 로그인을 위해 현재 프로토콜을 http에서 https로 전환할 수도 있습니다. 
 - `requestCache`는 사용자가 인증한 후에 요청을 검색하고 재사용할 수 있도록 인증 프로세스 중에 요청을 저장하는 데 사용되는 전략을 결정합니다. 
 - 기본 구현은 `HttpSessionRequestCache`입니다.
+#### AccessDeniedException 예외에 대한 핸들러 설정이 가능함
+- 기본 구현은 org.springframework.security.web.access.AccessDeniedHandlerImpl 클래스
+- HttpSecurity  클래스의 exceptionHandling() 메소드를 통해 사용자 정의 핸들러를 설정함
+    - 접근 거부 요청에 대한 로깅 처리
+    - HTTP 403 응답 생성
 
 ### 대칭키 암호화, RSA 암호화
 
