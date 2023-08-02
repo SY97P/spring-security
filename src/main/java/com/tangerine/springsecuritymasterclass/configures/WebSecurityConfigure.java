@@ -46,6 +46,9 @@ public class WebSecurityConfigure {
                         .anyRequest()
                         .permitAll())
                 .formLogin(login -> login
+//                        .loginPage("/my-login") // 커스텀 로그인 페이지를 만든 경우
+//                        .usernameParameter("my-username")
+//                        .passwordParameter("my-password")
                         .defaultSuccessUrl("/login")
                         .permitAll())
                 .rememberMe(remember -> remember
