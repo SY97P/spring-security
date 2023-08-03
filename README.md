@@ -154,7 +154,7 @@ http.rememberMe(remember -> remember
     - 기본값: "remember-me"
   - tokenValiditySeconds
     - 쿠키 만료 시간 (unit: sec)
-  - alwaysRemeber
+  - alwaysRemember
     - 항상 remember-me 활성화
     - 기본값: false
 ```java
@@ -169,7 +169,7 @@ http.rememberMe()
 - 실제 사용자 인증
 #### TokenBasedRemeberMeServices
 - MD5 해시 알고리즘 기반 쿠키 검증
-#### PersistTokenBasedRememberMeSerivics
+#### PersistTokenBasedRememberMeServices
 - 외부 데이터베이스에서 인증에 필요한 데이터 가져와 검증
 - 사용자마다 고유 Series 식별자 생성
 - 인증마다 매번 갱신되는 임의 토큰값 사용

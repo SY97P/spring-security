@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -67,8 +68,14 @@ public class WebSecurityConfigure {
 //                        .requestMatchers("/api/**")
                         .requiresSecure())
                 .exceptionHandling(handler -> handler
-                        .accessDeniedHandler(accessDeniedHandler())
-                );
+                        .accessDeniedHandler(accessDeniedHandler()))
+                .sessionManagement(session -> session
+                        .sessionFixation().changeSessionId() // 세션 픽세이션 보안 옵션 -> changeSession: 새로운 세션 X, 공격 방어 O
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 필요시 세션 생성
+                        .invalidSessionUrl("/") // 잘못된 session url인 경우 도달하는 url 경로
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false))
+        ;
         return http.build();
     }
 
