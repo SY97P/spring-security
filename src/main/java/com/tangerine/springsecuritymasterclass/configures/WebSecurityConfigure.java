@@ -1,25 +1,19 @@
 package com.tangerine.springsecuritymasterclass.configures;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -27,9 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.io.IOException;
-
-import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
@@ -37,13 +29,20 @@ public class WebSecurityConfigure {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final DataSource dataSource;
+
+    public WebSecurityConfigure(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     // HttpSecurity : 세부적인 웹 보안기능 설정 처리 api 제공
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/me").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/admin").hasRole("ADMIN").requestMatchers("/admin").fullyAuthenticated()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/me")).hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/admin")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/admin")).fullyAuthenticated()
                         .anyRequest()
                         .permitAll())
                 .formLogin(login -> login
@@ -85,7 +84,10 @@ public class WebSecurityConfigure {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return web -> web.ignoring()
-                .requestMatchers("/assets/**");
+                .requestMatchers(
+                        AntPathRequestMatcher.antMatcher("/assets/**"),
+                        AntPathRequestMatcher.antMatcher("/h2-console/**")
+                );
     }
 
     @Bean
@@ -94,19 +96,29 @@ public class WebSecurityConfigure {
     }
 
     @Bean
-    UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User
-                .withUsername("user")
-                .password(passwordEncoder.encode("user123"))
-                .roles("USER")
-                .build());
-        manager.createUser(User
-                .withUsername("admin")
-                .password(passwordEncoder.encode("admin123"))
-                .roles("ADMIN")
-                .build());
-        return manager;
+    public UserDetailsService userDetailsService() {
+        JdbcDaoImpl jdbcDao = new JdbcDaoImpl();
+        jdbcDao.setDataSource(dataSource);
+        jdbcDao.setEnableAuthorities(false);
+        jdbcDao.setEnableGroups(true);
+        jdbcDao.setUsersByUsernameQuery(
+                """
+                SELECT login_id, passwd, true
+                    FROM users
+                    WHERE login_id = ?
+                """
+        );
+        jdbcDao.setGroupAuthoritiesByUsernameQuery(
+                """
+                SELECT u.login_id, g.name, p.name
+                    FROM users u
+                    JOIN groups g ON u.group_id = g.id
+                    LEFT JOIN group_permission gp ON g.id = gp.group_id
+                    JOIN permissions p ON p.id = gp.permission_id
+                    WHERE u.login_id = ?
+                """
+        );
+        return jdbcDao;
     }
 
     @Bean
@@ -116,23 +128,11 @@ public class WebSecurityConfigure {
             Object principal = authentication != null ? authentication.getPrincipal() : null;
             logger.warn("{} is denied", principal, accessDeniedException);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.setContentType("text/plain");
+            response.setContentType("text/plain;charset=UTF-8");
             response.getWriter().write("## ACCESS DENIED ##");
             response.getWriter().flush();
             response.getWriter().close();
         };
     }
-
-//    @Bean
-//    @Order(0)
-//    public SecurityFilterChain resources(HttpSecurity http) throws Exception {
-//        return http
-//                .authorizeHttpRequests(authz -> authz
-//                        .requestMatchers("/assets/**")
-//                        .hasAnyRole("USER", "ADMIN")
-//                        .anyRequest()
-//                        .permitAll())
-//                .build();
-//    }
 
 }
