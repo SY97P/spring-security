@@ -7,6 +7,10 @@ spring:
     basename: i18n/messages
     encoding: UTF-8
     cache-duration: PT1H
+  session:
+    jdbc:
+#      원래 여기에 org/springframework/session/schema-h2.sql 이 와야하는데 우리는 sql 에 선언했으므로 never
+      initialize-schema: never
   h2:
     console:
       enabled: true
@@ -24,7 +28,7 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
   datasource:
     driver-class-name: org.h2.Driver
-    url: "jdbc:h2:mem:spring_security;MODE=MYSQL;DB_CLOSE_DELAY=-1"
+    url: "jdbc:h2:file:./database/spring_security_db;MODE=MYSQL;DB_CLOSE_DELAY=-1"
     username: sa
     password:
     hikari:
@@ -34,7 +38,12 @@ spring:
   sql:
     init:
       platform: h2
-      schema-locations: classpath:sql/schema_new.sql
+      # h2를 in-mem 으로 사용할 때는 mode:embedded(기본값) 이어도 상관 없었음
+      # 하지만 이젠 file 저장이므로, sql 초기화 시 아래 있는 파일을 이용하지 않기 때문에
+      # 해당 파일을 사용하도록 mode: always 로 변경
+      # never 로 한다면 기존 session 을 그대로 이용하는 것
+      mode: never
+      schema-locations: classpath:sql/schema_new.sql, classpath:org/springframework/session/jdbc/schema-h2.sql
       data-locations: classpath:sql/data_new.sql
       encoding: UTF-8
 server:

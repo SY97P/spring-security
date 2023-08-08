@@ -1,4 +1,4 @@
-package com.tangerine.springsecuritymasterclass.configures;
+package com.tangerine.springsecurity.configures;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

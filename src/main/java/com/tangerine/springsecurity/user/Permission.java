@@ -1,4 +1,4 @@
-package com.tangerine.springsecuritymasterclass.user;
+package com.tangerine.springsecurity.user;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

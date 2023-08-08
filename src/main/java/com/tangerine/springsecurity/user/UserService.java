@@ -1,4 +1,4 @@
-package com.tangerine.springsecuritymasterclass.user;
+package com.tangerine.springsecurity.user;
 
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;

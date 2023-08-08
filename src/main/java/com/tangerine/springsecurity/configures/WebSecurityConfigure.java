@@ -1,6 +1,6 @@
-package com.tangerine.springsecuritymasterclass.configures;
+package com.tangerine.springsecurity.configures;
 
-import com.tangerine.springsecuritymasterclass.user.UserService;
+import com.tangerine.springsecurity.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

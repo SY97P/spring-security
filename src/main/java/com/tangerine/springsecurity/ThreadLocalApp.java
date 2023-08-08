@@ -1,4 +1,4 @@
-package com.tangerine.springsecuritymasterclass;
+package com.tangerine.springsecurity;
 
 import java.util.concurrent.CompletableFuture;
 

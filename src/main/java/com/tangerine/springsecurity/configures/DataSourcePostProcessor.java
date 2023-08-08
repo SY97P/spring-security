@@ -1,4 +1,4 @@
-package com.tangerine.springsecuritymasterclass.configures;
+package com.tangerine.springsecurity.configures;
 
 import net.sf.log4jdbc.Log4jdbcProxyDataSource;
 import org.springframework.beans.BeansException;

@@ -1,4 +1,4 @@
-package com.tangerine.springsecuritymasterclass;
+package com.tangerine.springsecurity;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

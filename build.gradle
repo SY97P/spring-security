@@ -27,6 +27,7 @@ dependencies {
     implementation 'com.zaxxer:HikariCP:5.0.1'
     implementation 'org.lazyluke:log4jdbc-remix:0.2.7'
     implementation 'com.h2database:h2'
+    implementation 'org.springframework.session:spring-session-jdbc'
 }
 
 tasks.named('test') {
