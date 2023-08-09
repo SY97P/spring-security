@@ -1,5 +1,6 @@
 package com.tangerine.springsecurity.configures;
 
+import com.tangerine.springsecurity.jwt.Jwt;
 import com.tangerine.springsecurity.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,10 +26,21 @@ public class WebSecurityConfigure {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private UserService userService;
+    private final UserService userService;
+    private final JwtConfigure jwtConfigure;
 
-    public WebSecurityConfigure(UserService userService) {
+    public WebSecurityConfigure(UserService userService, JwtConfigure jwtConfigure) {
         this.userService = userService;
+        this.jwtConfigure = jwtConfigure;
+    }
+
+    @Bean
+    public Jwt jwt() {
+        return new Jwt(
+                jwtConfigure.getIssuer(),
+                jwtConfigure.getClientSecret(),
+                jwtConfigure.getExpirySeconds()
+        );
     }
 
     @Bean
@@ -66,40 +79,17 @@ public class WebSecurityConfigure {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/me")).hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/admin")).hasRole("ADMIN")
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/admin")).fullyAuthenticated()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/user/me")).hasAnyRole("USER", "ADMIN")
                         .anyRequest()
                         .permitAll())
-                .formLogin(login -> login
-//                        .loginPage("/my-login") // 커스텀 로그인 페이지를 만든 경우
-//                        .usernameParameter("my-username")
-//                        .passwordParameter("my-password")
-                        .defaultSuccessUrl("/login")
-                        .permitAll())
-                .rememberMe(remember -> remember
-                        .rememberMeCookieName("remember-me")
-                        .rememberMeParameter("remember-me")
-                        .tokenValiditySeconds(300)
-                        .alwaysRemember(false))
-                .logout(logout -> logout
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("remember-me"))
-                .requiresChannel(channel -> channel
-                        .anyRequest()
-//                        .requestMatchers("/api/**")
-                        .requiresSecure())
+                .csrf(AbstractHttpConfigurer::disable)
+                .headers(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .rememberMe(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .exceptionHandling(handler -> handler
                         .accessDeniedHandler(accessDeniedHandler()))
-                .sessionManagement(session -> session
-                        .sessionFixation().changeSessionId() // 세션 픽세이션 보안 옵션 -> changeSession: 새로운 세션 X, 공격 방어 O
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 필요시 세션 생성
-                        .invalidSessionUrl("/") // 잘못된 session url인 경우 도달하는 url 경로
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         ;
         return http.build();
     }
