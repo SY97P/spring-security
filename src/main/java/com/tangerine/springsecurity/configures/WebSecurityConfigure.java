@@ -1,6 +1,7 @@
 package com.tangerine.springsecurity.configures;
 
 import com.tangerine.springsecurity.jwt.Jwt;
+import com.tangerine.springsecurity.jwt.JwtAuthenticationFilter;
 import com.tangerine.springsecurity.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -32,15 +34,6 @@ public class WebSecurityConfigure {
     public WebSecurityConfigure(UserService userService, JwtConfigure jwtConfigure) {
         this.userService = userService;
         this.jwtConfigure = jwtConfigure;
-    }
-
-    @Bean
-    public Jwt jwt() {
-        return new Jwt(
-                jwtConfigure.getIssuer(),
-                jwtConfigure.getClientSecret(),
-                jwtConfigure.getExpirySeconds()
-        );
     }
 
     @Bean
@@ -74,6 +67,20 @@ public class WebSecurityConfigure {
                 );
     }
 
+    @Bean
+    public Jwt jwt() {
+        return new Jwt(
+                jwtConfigure.getIssuer(),
+                jwtConfigure.getClientSecret(),
+                jwtConfigure.getExpirySeconds()
+        );
+    }
+
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        Jwt jwt = jwt();
+        return new JwtAuthenticationFilter(jwtConfigure.getHeader(), jwt);
+    }
+
     // HttpSecurity : 세부적인 웹 보안기능 설정 처리 api 제공
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -90,6 +97,7 @@ public class WebSecurityConfigure {
                 .exceptionHandling(handler -> handler
                         .accessDeniedHandler(accessDeniedHandler()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class) // Jwt 필터를 SpringSecurity 필터 체인에 추가
         ;
         return http.build();
     }
