@@ -2,12 +2,15 @@ package com.tangerine.springsecurity.configures;
 
 import com.tangerine.springsecurity.jwt.Jwt;
 import com.tangerine.springsecurity.jwt.JwtAuthenticationFilter;
+import com.tangerine.springsecurity.jwt.JwtAuthenticationProvider;
 import com.tangerine.springsecurity.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -28,11 +31,9 @@ public class WebSecurityConfigure {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final UserService userService;
     private final JwtConfigure jwtConfigure;
 
-    public WebSecurityConfigure(UserService userService, JwtConfigure jwtConfigure) {
-        this.userService = userService;
+    public WebSecurityConfigure(JwtConfigure jwtConfigure) {
         this.jwtConfigure = jwtConfigure;
     }
 
@@ -74,6 +75,16 @@ public class WebSecurityConfigure {
                 jwtConfigure.getClientSecret(),
                 jwtConfigure.getExpirySeconds()
         );
+    }
+
+    @Bean
+    public JwtAuthenticationProvider jwtAuthenticationProvider(Jwt jwt, UserService userService) {
+        return new JwtAuthenticationProvider(userService, jwt);
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     public JwtAuthenticationFilter jwtAuthenticationFilter() {

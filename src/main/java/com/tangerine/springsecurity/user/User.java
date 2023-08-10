@@ -1,6 +1,7 @@
 package com.tangerine.springsecurity.user;
 
 import jakarta.persistence.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Table(name = "users")
@@ -33,6 +34,12 @@ public class User {
 
     public Group getGroup() {
         return group;
+    }
+
+    public void checkPassword(PasswordEncoder passwordEncoder, String credentials) {
+        if (!passwordEncoder.matches(credentials, passwd)) {
+            throw new IllegalArgumentException("Bad credentials");
+        }
     }
 
     @Override

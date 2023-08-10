@@ -13,6 +13,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     private String credentials;
 
     public JwtAuthenticationToken(String principal, String credentials) {
+        // 아직 인증되지 않은 상태
         super(null);
         super.setAuthenticated(false);
 
@@ -20,7 +21,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
         this.credentials = credentials;
     }
 
-    public JwtAuthenticationToken(Collection<? extends GrantedAuthority> authorities, Object principal, String credentials) {
+    JwtAuthenticationToken(Collection<? extends GrantedAuthority> authorities, Object principal, String credentials) {
         super(authorities);
         super.setAuthenticated(true);
 
@@ -38,7 +39,10 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
         return principal;
     }
 
+    @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+        // authentication 인증 상태과 완료되었음은 오로지 생성자를 이용한 방법만 가능하도록 하기 위해서
+        // setter에서 true 권한 갱신이 들어오는 경우 예외 던저도록 구현
         if (isAuthenticated) {
             throw new IllegalArgumentException("Cannot set this token to trusted - user constructor which takes a GrantedAuthority list instead");
         }
