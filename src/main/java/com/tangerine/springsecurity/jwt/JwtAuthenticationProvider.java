@@ -7,7 +7,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.List;
@@ -25,8 +24,10 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         this.jwt = jwt;
     }
 
+    // 인증 처리
     private Authentication processUserAuthentication(String principal, String credentials) {
         try {
+            // UserService 를 이용해 로그인 처리 + JWT 토큰 생성
             User user = userService.login(principal, credentials);
             List<SimpleGrantedAuthority> authorities = user.getGroup().getAuthorities();
             String token = getToken(user.getLoginId(), authorities);
@@ -51,6 +52,9 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         return jwt.sign(Jwt.Claims.from(username, roles));
     }
 
+    // 인증이 완료된 사용자의 JwtAuthenticationToken 을 반환함
+    // - principal 필드 — JwtAuthentication 객체
+    // - details 필드 — com.tangerine.springsecurity.user.User 객체 (org.springframework.security.core.userdetails.User와 명백히 다름에 주목)
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;

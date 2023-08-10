@@ -5,8 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -48,11 +46,11 @@ public class JwtAuthenticationFilter extends GenericFilter {
                     String username = claims.username;
                     List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
 
-                    if (isNotEmpty(username) && authorities.size() > 0) {
+                    if (isNotEmpty(username) && !authorities.isEmpty()) {
                         // Jwt에서 추출한 loginId, roles 를 token으로 만들어줌
                         // SecurityContext 에 넣어, 필터로 쓰기 위함
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(username, null, authorities);
+                        JwtAuthenticationToken authentication =
+                                new JwtAuthenticationToken(authorities, new JwtAuthentication(token, username), null);
                         // 원격주소, 세션 아이디를 세팅
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                         // 생성한 UsernamePasswordAuthenticationToken 을 SecurityContext 에 넣어줌
