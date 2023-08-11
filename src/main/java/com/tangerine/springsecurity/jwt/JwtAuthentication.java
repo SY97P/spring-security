@@ -1,33 +1,22 @@
 package com.tangerine.springsecurity.jwt;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.tangerine.springsecurity.user.User;
-import org.springframework.util.Assert;
-
-import java.util.Collections;
 import java.util.StringJoiner;
 
-import static org.apache.logging.log4j.util.Strings.isNotEmpty;
+import static io.micrometer.common.util.StringUtils.isNotEmpty;
+import static org.h2.mvstore.DataUtils.checkArgument;
 
 public class JwtAuthentication {
 
-    private final String token;
-    private final String username;
+    public final String token;
 
-    public JwtAuthentication(String token, String username) {
-        Assert.notNull(token, "token must be provided");
-        Assert.notNull(username, "username must be provided");
+    public final String username;
+
+    JwtAuthentication(String token, String username) {
+        checkArgument(isNotEmpty(token), "token must be provided.");
+        checkArgument(isNotEmpty(username), "username must be provided.");
 
         this.token = token;
         this.username = username;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     @Override

@@ -7,24 +7,21 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-public class Jwt {
+public final class Jwt {
 
     private final String issuer;
-
     private final String clientSecret;
-
     private final int expirySeconds;
-
     private final Algorithm algorithm;
-
     private final JWTVerifier jwtVerifier;
 
-    public Jwt(String issuer, String clientSecret, int expirySeconds) {
+    public Jwt(
+            String issuer,
+            String clientSecret,
+            int expirySeconds
+    ) {
         this.issuer = issuer;
         this.clientSecret = clientSecret;
         this.expirySeconds = expirySeconds;
@@ -81,9 +78,8 @@ public class Jwt {
 
         Claims(DecodedJWT decodedJWT) {
             Claim username = decodedJWT.getClaim("username");
-            if (!username.isNull()) {
+            if (!username.isNull())
                 this.username = username.asString();
-            }
             Claim roles = decodedJWT.getClaim("roles");
             if (!roles.isNull()) {
                 this.roles = roles.asArray(String.class);
@@ -108,11 +104,11 @@ public class Jwt {
             return map;
         }
 
-        public long iat() {
+        long iat() {
             return iat != null ? iat.getTime() : -1;
         }
 
-        public long exp() {
+        long exp() {
             return exp != null ? exp.getTime() : -1;
         }
 
@@ -126,12 +122,13 @@ public class Jwt {
 
         @Override
         public String toString() {
-            return "Claims{" +
-                    "username='" + username + '\'' +
-                    ", roles=" + Arrays.toString(roles) +
-                    ", iat=" + iat +
-                    ", exp=" + exp +
-                    '}';
+            return new StringJoiner(", ", Claims.class.getSimpleName() + "[", "]")
+                    .add("username='" + username + "'")
+                    .add("roles=" + Arrays.toString(roles))
+                    .add("iat=" + iat)
+                    .add("exp=" + exp)
+                    .toString();
         }
     }
+
 }

@@ -1,7 +1,12 @@
 package com.tangerine.springsecurity.user;
 
 import jakarta.persistence.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
+import java.util.StringJoiner;
+
+import static io.micrometer.common.util.StringUtils.isNotEmpty;
+import static org.h2.mvstore.DataUtils.checkArgument;
 
 @Entity
 @Table(name = "users")
@@ -9,46 +14,75 @@ public class User {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "login_id")
-    private String loginId;
+    @Column(name = "username")
+    private String username;
 
-    @Column(name = "passwd")
-    private String passwd;
+    @Column(name = "provider")
+    private String provider;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @Column(name = "provider_id")
+    private String providerId;
+
+    @Column(name = "profile_image")
+    private String profileImage;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
+
+    protected User() {
+    }
+
+    public User(String username, String provider, String providerId, String profileImage, Group group) {
+        checkArgument(isNotEmpty(username), "username must be provided.");
+        checkArgument(isNotEmpty(provider), "provider must be provided.");
+        checkArgument(isNotEmpty(providerId), "providerId must be provided.");
+        checkArgument(group != null, "group must be provided.");
+
+        this.username = username;
+        this.provider = provider;
+        this.providerId = providerId;
+        this.profileImage = profileImage;
+        this.group = group;
+    }
 
     public Long getId() {
         return id;
     }
 
-    public String getLoginId() {
-        return loginId;
+    public String getUsername() {
+        return username;
     }
 
-    public String getPasswd() {
-        return passwd;
+    public String getProvider() {
+        return provider;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public Optional<String> getProfileImage() {
+        return Optional.ofNullable(profileImage);
     }
 
     public Group getGroup() {
         return group;
     }
 
-    public void checkPassword(PasswordEncoder passwordEncoder, String credentials) {
-        if (!passwordEncoder.matches(credentials, passwd)) {
-            throw new IllegalArgumentException("Bad credentials");
-        }
-    }
-
     @Override
     public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", loginId='" + loginId + '\'' +
-                ", passwd='" + passwd + '\'' +
-                ", group=" + group +
-                '}';
+        return new StringJoiner(", ", User.class.getSimpleName() + "[", "]")
+                .add("id=" + id)
+                .add("username='" + username + "'")
+                .add("provider='" + provider + "'")
+                .add("providerId='" + providerId + "'")
+                .add("profileImage='" + profileImage + "'")
+                .add("group=" + group)
+                .toString();
     }
+
 }
